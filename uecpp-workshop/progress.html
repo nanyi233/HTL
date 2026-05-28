@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习进度 - UE C++ 开发工坊</title>
+  <meta name="description" content="查看你的UE C++学习进度和已掌握的知识点">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand">⚡ UE C++ 工坊</a>
+    <div class="nav-links">
+      <a href="learn.html" class="nav-link">学习</a>
+      <a href="flashcard.html" class="nav-link">闪卡</a>
+      <a href="roots.html" class="nav-link">索引</a>
+      <a href="progress.html" class="nav-link active">进度</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container" style="padding-top: var(--space-3xl); padding-bottom: var(--space-4xl);">
+    <div class="page-header">
+      <h1 class="page-title">学习进度</h1>
+      <p class="page-subtitle">追踪你的UE C++学习旅程</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="progress-stats" style="margin-top: var(--space-xl);">
+      <div class="progress-stat">
+        <div class="progress-stat-value" id="masteredCount" style="color:var(--color-success);">0</div>
+        <div class="progress-stat-label">已掌握</div>
+      </div>
+      <div class="progress-stat">
+        <div class="progress-stat-value" id="remainingCount">25</div>
+        <div class="progress-stat-label">待学习</div>
+      </div>
+      <div class="progress-stat">
+        <div class="progress-stat-value" id="percentage" style="color:var(--color-accent-dark);">0%</div>
+        <div class="progress-stat-label">完成度</div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="margin: var(--space-xl) 0;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:var(--space-sm);">
+        <span style="font-size:0.9rem; color:var(--color-text-secondary);">总体进度</span>
+        <span style="font-size:0.9rem; font-weight:600;" id="progressLabel">0 / 25</span>
+      </div>
+      <div class="progress-bar-wrap" style="height:10px;">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Achievement -->
+    <div id="achievementBanner" style="display:none; background:linear-gradient(135deg,#FBBF24,#F59E0B); border-radius:var(--radius-lg); padding:var(--space-xl); text-align:center; margin:var(--space-xl) 0;">
+      <div style="font-size:2rem; margin-bottom:var(--space-sm);">🏆</div>
+      <div style="font-size:1.25rem; font-weight:700;">恭喜！你已掌握所有知识点！</div>
+      <div style="margin-top:var(--space-sm); opacity:0.8;">你已经是UE C++开发高手了！</div>
+    </div>
+
+    <!-- Mastered List -->
+    <div style="margin-top: var(--space-2xl);">
+      <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:var(--space-lg);">
+        已掌握的知识点
+        <span id="masteredListCount" style="font-size:0.9rem; font-weight:400; color:var(--color-text-secondary); margin-left:var(--space-sm);"></span>
+      </h2>
+      <div class="mastered-list" id="masteredList"></div>
+      <div class="empty-state" id="emptyMastered" style="display:none;">
+        <div class="empty-state-icon">📚</div>
+        <div class="empty-state-title">还没有掌握的知识点</div>
+        <p>去<a href="learn.html" style="color:var(--color-accent-dark); font-weight:600;">学习页面</a>开始学习吧！</p>
+      </div>
+    </div>
+
+    <!-- Reset -->
+    <div style="margin-top: var(--space-3xl); padding-top: var(--space-xl); border-top: 1px solid var(--color-border); text-align:center;">
+      <button class="btn btn-secondary btn-sm" onclick="resetProgress()">重置所有进度</button>
+    </div>
+  </div>
+</main>
+
+<script src="js/wordData.js"></script>
+<script src="js/siteConfig.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  function showFeedback(message, isSuccess) {
+    const toast = document.createElement('div');
+    toast.className = 'feedback-toast ' + (isSuccess ? 'success' : 'error');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+  }
+
+  function renderMasteredList(masteredIds) {
+    const list = document.getElementById('masteredList');
+    const empty = document.getElementById('emptyMastered');
+    const countEl = document.getElementById('masteredListCount');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    const masteredRoots = WordRoots.filter(r => masteredIds.includes(r.id));
+
+    if (countEl) countEl.textContent = '(' + masteredRoots.length + ' 个)';
+
+    if (masteredRoots.length === 0) {
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    masteredRoots.forEach(root => {
+      const item = document.createElement('div');
+      item.className = 'mastered-item';
+      item.onclick = () => {
+        const index = WordRoots.findIndex(r => r.id === root.id);
+        if (index >= 0) {
+          StorageManager.updateProgress(index);
+          window.location.href = 'learn.html';
+        }
+      };
+
+      const checkSpan = document.createElement('span');
+      checkSpan.style.cssText = 'color:var(--color-success); font-size:1.1rem;';
+      checkSpan.textContent = '✓';
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'mastered-item-name';
+      nameDiv.textContent = root.root;
+
+      const meaningDiv = document.createElement('div');
+      meaningDiv.className = 'mastered-item-meaning';
+      meaningDiv.textContent = root.meaning;
+
+      const originSpan = document.createElement('span');
+      originSpan.className = 'root-origin';
+      originSpan.style.fontSize = '0.75rem';
+      originSpan.textContent = root.origin;
+
+      item.appendChild(checkSpan);
+      item.appendChild(nameDiv);
+      item.appendChild(meaningDiv);
+      item.appendChild(originSpan);
+      list.appendChild(item);
+    });
+  }
+
+  function loadProgress() {
+    try {
+      const progress = StorageManager.getProgress();
+      const masteredCount = progress.masteredRoots.length;
+      const totalCount = WordRoots.length;
+      const remaining = totalCount - masteredCount;
+      const percentage = Math.round((masteredCount / totalCount) * 100);
+
+      const masteredEl = document.getElementById('masteredCount');
+      const remainingEl = document.getElementById('remainingCount');
+      const percentageEl = document.getElementById('percentage');
+      const progressBar = document.getElementById('progressBar');
+      const progressLabel = document.getElementById('progressLabel');
+      const achievement = document.getElementById('achievementBanner');
+
+      if (masteredEl) masteredEl.textContent = masteredCount;
+      if (remainingEl) remainingEl.textContent = remaining;
+      if (percentageEl) percentageEl.textContent = percentage + '%';
+      if (progressBar) progressBar.style.width = percentage + '%';
+      if (progressLabel) progressLabel.textContent = masteredCount + ' / ' + totalCount;
+      if (achievement) achievement.style.display = masteredCount === totalCount ? 'block' : 'none';
+
+      renderMasteredList(progress.masteredRoots);
+    } catch(e) {
+      console.error('Failed to load progress', e);
+    }
+  }
+
+  function resetProgress() {
+    if (confirm('确定要重置所有学习进度吗？此操作无法撤销。')) {
+      StorageManager.resetProgress();
+      showFeedback('✓ 进度已重置', true);
+      loadProgress();
+    }
+  }
+
+  loadProgress();
+</script>
+</body>
+</html>

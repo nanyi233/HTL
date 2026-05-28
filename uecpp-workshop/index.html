@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UE C++ 开发工坊</title>
+  <meta name="description" content="基于虚幻引擎官方架构，系统梳理UE C++开发的25个核心知识点。从UCLASS反射宏到GAS技能系统，让你真正理解UE的设计哲学。">
+  <meta name="keywords" content="UE C++,虚幻引擎,Unreal Engine,C++,游戏开发,学习">
+  <meta name="author" content="UE C++ 开发工坊">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="UE C++ 开发工坊">
+  <meta property="og:description" content="25个核心知识点，掌握虚幻引擎C++开发精髓">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="UE C++ 开发工坊">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href="/" class="nav-brand">⚡ UE C++ 工坊</a>
+    <div class="nav-links">
+      <a href="learn.html" class="nav-link">学习</a>
+      <a href="flashcard.html" class="nav-link">闪卡</a>
+      <a href="roots.html" class="nav-link">索引</a>
+      <a href="progress.html" class="nav-link">进度</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title">
+          25个核心知识点<br>
+          掌握虚幻引擎<br>
+          <span class="highlight">C++开发精髓</span>
+        </h1>
+        <p class="hero-subtitle">
+          从反射宏到GAS技能系统，系统掌握UE C++开发的核心框架与最佳实践
+        </p>
+        <div class="hero-cta">
+          <a href="learn.html" class="btn btn-primary btn-large">开始第一个知识点 →</a>
+          <a href="flashcard.html" class="btn btn-secondary btn-large">闪卡速记</a>
+        </div>
+
+        <!-- Demo Animation -->
+        <div class="demo-container">
+          <div class="demo-card">
+            <div class="demo-label">当前知识点</div>
+            <div class="demo-word" id="demoWord">UCLASS()</div>
+            <div class="demo-meaning" id="demoMeaning">将C++类暴露给UE反射系统和蓝图</div>
+            <span class="demo-origin" id="demoOrigin">反射宏系统</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="container-wide">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statMastered">0</div>
+          <div class="stat-label">已掌握知识点</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">25</div>
+          <div class="stat-label">核心知识点</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">5大</div>
+          <div class="stat-label">核心模块</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section style="padding: var(--space-4xl) 0;">
+    <div class="container-wide">
+      <div style="text-align:center; margin-bottom: var(--space-3xl);">
+        <h2 style="font-size:2rem; font-weight:700; margin-bottom:var(--space-md);">覆盖5大核心模块</h2>
+        <p style="color:var(--color-text-secondary); font-size:1.1rem;">从基础到进阶，系统构建UE C++知识体系</p>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:var(--space-lg);">
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:var(--space-md);">🔮</div>
+          <h3 style="font-weight:700; margin-bottom:var(--space-sm);">反射宏系统</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem;">UCLASS、UPROPERTY、UFUNCTION，UE反射的基石</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:var(--space-md);">🏗️</div>
+          <h3 style="font-weight:700; margin-bottom:var(--space-sm);">核心基类</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem;">AActor、APawn、ACharacter，游戏对象的层级体系</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:var(--space-md);">🌐</div>
+          <h3 style="font-weight:700; margin-bottom:var(--space-sm);">网络系统</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem;">Replication、RPC，多人游戏的权威同步机制</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:var(--space-md);">⚡</div>
+          <h3 style="font-weight:700; margin-bottom:var(--space-sm);">GAS技能系统</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem;">AbilitySystem、GameplayEffect，专业技能框架</p>
+        </div>
+        <div class="card">
+          <div style="font-size:2rem; margin-bottom:var(--space-md);">🧠</div>
+          <h3 style="font-weight:700; margin-bottom:var(--space-sm);">内存管理</h3>
+          <p style="color:var(--color-text-secondary); font-size:0.9rem;">GC、智能指针、对象生命周期管理</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-tagline">写出引擎级别的C++代码</div>
+      <p class="footer-desc">
+        基于虚幻引擎官方架构，系统梳理UE C++开发的25个核心知识点。从UCLASS反射宏到GAS技能系统，从内存管理到网络复制，让你真正理解UE的设计哲学，写出高质量的引擎级C++代码。
+      </p>
+    </div>
+  </footer>
+</main>
+
+<script src="js/wordData.js"></script>
+<script src="js/siteConfig.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  // Demo animation
+  const demoItems = WordRoots.slice(0, 5);
+  let demoIndex = 0;
+
+  function updateDemo() {
+    const item = demoItems[demoIndex];
+    const wordEl = document.getElementById('demoWord');
+    const meaningEl = document.getElementById('demoMeaning');
+    const originEl = document.getElementById('demoOrigin');
+    if (wordEl) wordEl.textContent = item.root;
+    if (meaningEl) meaningEl.textContent = item.meaning;
+    if (originEl) originEl.textContent = item.origin;
+    demoIndex = (demoIndex + 1) % demoItems.length;
+  }
+
+  updateDemo();
+  setInterval(updateDemo, 3500);
+
+  // Update mastered count
+  try {
+    const progress = StorageManager.getProgress();
+    const el = document.getElementById('statMastered');
+    if (el) el.textContent = progress.masteredRoots.length;
+  } catch(e) {
+    console.warn('Failed to load progress stats', e);
+  }
+</script>
+</body>
+</html>

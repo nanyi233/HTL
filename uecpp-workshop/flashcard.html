@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>闪卡速记 - UE C++ 开发工坊</title>
+  <meta name="description" content="通过闪卡快速记忆UE C++核心知识点">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand">⚡ UE C++ 工坊</a>
+    <div class="nav-links">
+      <a href="learn.html" class="nav-link">学习</a>
+      <a href="flashcard.html" class="nav-link active">闪卡</a>
+      <a href="roots.html" class="nav-link">索引</a>
+      <a href="progress.html" class="nav-link">进度</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container" style="padding-top: var(--space-3xl); padding-bottom: var(--space-4xl);">
+    <div class="page-header" style="border:none; padding-bottom: var(--space-xl);">
+      <h1 class="page-title">闪卡速记</h1>
+      <p class="page-subtitle">点击卡片翻转查看详情，用键盘 ← → 切换，空格翻转</p>
+    </div>
+
+    <!-- Progress -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-lg);">
+      <span class="nav-counter" id="cardCounter">1 / 25</span>
+      <span style="font-size:0.9rem; color:var(--color-text-secondary);">已掌握 <strong id="masteredCount">0</strong> 个</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:4%"></div>
+    </div>
+
+    <!-- Flashcard -->
+    <div style="margin: var(--space-2xl) 0;">
+      <div class="flashcard-wrap">
+        <div class="flashcard" id="flashcard" onclick="flipCard()">
+          <div class="flashcard-front">
+            <div class="flashcard-root" id="frontRoot">-</div>
+            <div class="flashcard-meaning" id="frontMeaning">-</div>
+            <span class="flashcard-origin" id="frontOrigin">-</span>
+            <div class="flashcard-hint" style="margin-top:var(--space-xl);">点击翻转查看详情</div>
+          </div>
+          <div class="flashcard-back">
+            <div class="flashcard-root" id="backRoot" style="font-size:1.25rem; margin-bottom:var(--space-sm);">-</div>
+            <div class="flashcard-description" id="backDescription">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="nav-controls">
+      <button class="btn btn-secondary" onclick="prevCard()" id="prevBtn">← 上一个</button>
+      <button class="btn btn-primary" onclick="markMastered()" id="masterBtn">✓ 已掌握</button>
+      <button class="btn btn-secondary" onclick="nextCard()" id="nextBtn">下一个 →</button>
+    </div>
+
+    <!-- Keyboard hint -->
+    <div class="keyboard-hint">
+      <span class="key-hint"><span class="key">←</span> 上一个</span>
+      <span class="key-hint"><span class="key">→</span> 下一个</span>
+      <span class="key-hint"><span class="key">Space</span> 翻转</span>
+      <span class="key-hint"><span class="key">M</span> 标记掌握</span>
+    </div>
+  </div>
+</main>
+
+<script src="js/wordData.js"></script>
+<script src="js/siteConfig.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  let currentIndex = 0;
+
+  function showFeedback(message, isSuccess) {
+    const toast = document.createElement('div');
+    toast.className = 'feedback-toast ' + (isSuccess ? 'success' : 'error');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+  }
+
+  function loadCard(index) {
+    if (index < 0 || index >= WordRoots.length) return;
+    const root = WordRoots[index];
+    currentIndex = index;
+
+    const frontRoot = document.getElementById('frontRoot');
+    const frontMeaning = document.getElementById('frontMeaning');
+    const frontOrigin = document.getElementById('frontOrigin');
+    const backRoot = document.getElementById('backRoot');
+    const backDescription = document.getElementById('backDescription');
+
+    if (frontRoot) frontRoot.textContent = root.root;
+    if (frontMeaning) frontMeaning.textContent = root.meaning;
+    if (frontOrigin) frontOrigin.textContent = root.origin;
+    if (backRoot) backRoot.textContent = root.root;
+    if (backDescription) backDescription.textContent = root.description;
+
+    // Reset flip
+    const card = document.getElementById('flashcard');
+    if (card) card.classList.remove('flipped');
+
+    updateUI();
+    StorageManager.updateProgress(index);
+  }
+
+  function updateUI() {
+    const counter = document.getElementById('cardCounter');
+    const progressBar = document.getElementById('progressBar');
+    const masteredCount = document.getElementById('masteredCount');
+    const masterBtn = document.getElementById('masterBtn');
+
+    if (counter) counter.textContent = (currentIndex + 1) + ' / ' + WordRoots.length;
+    if (progressBar) progressBar.style.width = ((currentIndex + 1) / WordRoots.length * 100) + '%';
+
+    const progress = StorageManager.getProgress();
+    if (masteredCount) masteredCount.textContent = progress.masteredRoots.length;
+
+    const isMastered = StorageManager.isMastered(WordRoots[currentIndex].id);
+    if (masterBtn) {
+      masterBtn.textContent = isMastered ? '✓ 已掌握' : '标记已掌握';
+      masterBtn.style.background = isMastered ? 'var(--color-success)' : '';
+      masterBtn.style.color = isMastered ? '#fff' : '';
+    }
+  }
+
+  function flipCard() {
+    const card = document.getElementById('flashcard');
+    if (card) card.classList.toggle('flipped');
+  }
+
+  function nextCard() {
+    if (currentIndex < WordRoots.length - 1) {
+      loadCard(currentIndex + 1);
+    } else {
+      showFeedback('🎉 已到最后一张！', true);
+    }
+  }
+
+  function prevCard() {
+    if (currentIndex > 0) {
+      loadCard(currentIndex - 1);
+    }
+  }
+
+  function markMastered() {
+    const root = WordRoots[currentIndex];
+    const isMastered = StorageManager.isMastered(root.id);
+    if (isMastered) {
+      StorageManager.unmarkRootAsMastered(root.id);
+      showFeedback('已取消掌握标记', false);
+    } else {
+      StorageManager.markRootAsMastered(root.id);
+      showFeedback('✓ 已标记为掌握！', true);
+    }
+    updateUI();
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevCard();
+    else if (e.key === 'ArrowRight') nextCard();
+    else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+    else if (e.key === 'm' || e.key === 'M') markMastered();
+  });
+
+  // Init
+  try {
+    const progress = StorageManager.getProgress();
+    loadCard(progress.currentRootIndex || 0);
+  } catch(e) {
+    loadCard(0);
+  }
+</script>
+</body>
+</html>

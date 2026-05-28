@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>渐进学习 - UE C++ 开发工坊</title>
+  <meta name="description" content="渐进式学习UE C++核心知识点，包含详细说明和代码示例">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand">⚡ UE C++ 工坊</a>
+    <div class="nav-links">
+      <a href="learn.html" class="nav-link active">学习</a>
+      <a href="flashcard.html" class="nav-link">闪卡</a>
+      <a href="roots.html" class="nav-link">索引</a>
+      <a href="progress.html" class="nav-link">进度</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container" style="padding-top: var(--space-3xl); padding-bottom: var(--space-4xl);">
+
+    <!-- Progress -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-sm);">
+      <span class="nav-counter" id="cardCounter">1 / 25</span>
+      <span style="font-size:0.9rem; color:var(--color-text-secondary);">已掌握 <strong id="masteredCount">0</strong> 个</span>
+    </div>
+    <div class="progress-bar-wrap" style="margin-bottom:var(--space-xl);">
+      <div class="progress-bar" id="progressBar" style="width:4%"></div>
+    </div>
+
+    <!-- Learn Card -->
+    <div class="learn-card">
+      <div class="learn-root-name" id="rootName">-</div>
+      <div class="learn-root-meaning" id="rootMeaning">-</div>
+      <span class="learn-origin" id="rootOrigin">-</span>
+      <div class="learn-description" id="rootDescription">-</div>
+
+      <!-- Examples -->
+      <div class="examples-title">代码示例</div>
+      <div id="examplesContainer"></div>
+
+      <!-- Quiz -->
+      <div class="quiz-section">
+        <div class="examples-title">知识检验</div>
+        <div class="quiz-question" id="quizQuestion">-</div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div id="quizResult" style="margin-top:var(--space-md); display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-controls">
+      <button class="btn btn-secondary" onclick="prevRoot()" id="prevBtn">← 上一个</button>
+      <button class="btn btn-primary" onclick="toggleMastered()" id="masterBtn">标记已掌握</button>
+      <button class="btn btn-secondary" onclick="nextRoot()" id="nextBtn">下一个 →</button>
+    </div>
+
+    <!-- Keyboard hint -->
+    <div class="keyboard-hint">
+      <span class="key-hint"><span class="key">←</span> 上一个</span>
+      <span class="key-hint"><span class="key">→</span> 下一个</span>
+      <span class="key-hint"><span class="key">M</span> 标记掌握</span>
+    </div>
+  </div>
+</main>
+
+<script src="js/wordData.js"></script>
+<script src="js/siteConfig.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  let currentIndex = 0;
+  let quizAnswered = false;
+
+  function showFeedback(message, isSuccess) {
+    const toast = document.createElement('div');
+    toast.className = 'feedback-toast ' + (isSuccess ? 'success' : 'error');
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+  }
+
+  function renderExamples(examples) {
+    const container = document.getElementById('examplesContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!examples || !Array.isArray(examples)) return;
+
+    examples.forEach(ex => {
+      const item = document.createElement('div');
+      item.className = 'example-item';
+
+      const wordDiv = document.createElement('div');
+      wordDiv.className = 'example-word';
+      wordDiv.textContent = ex.word;
+
+      const meaningDiv = document.createElement('div');
+      meaningDiv.className = 'example-meaning';
+      meaningDiv.textContent = ex.meaning;
+
+      const explDiv = document.createElement('div');
+      explDiv.className = 'example-explanation';
+      explDiv.textContent = ex.explanation;
+
+      item.appendChild(wordDiv);
+      item.appendChild(meaningDiv);
+      item.appendChild(explDiv);
+      container.appendChild(item);
+    });
+  }
+
+  function renderQuiz(quiz) {
+    quizAnswered = false;
+    const questionEl = document.getElementById('quizQuestion');
+    const optionsEl = document.getElementById('quizOptions');
+    const resultEl = document.getElementById('quizResult');
+
+    if (questionEl) questionEl.textContent = quiz.question;
+    if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
+    if (!optionsEl) return;
+
+    optionsEl.innerHTML = '';
+    quiz.options.forEach((option, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'quiz-option';
+      btn.textContent = option;
+      btn.onclick = () => checkAnswer(index, quiz);
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function checkAnswer(selectedIndex, quiz) {
+    if (quizAnswered) return;
+    quizAnswered = true;
+
+    const options = document.querySelectorAll('.quiz-option');
+    options.forEach((btn, index) => {
+      btn.disabled = true;
+      if (index === quiz.correctAnswer) btn.classList.add('correct');
+      else if (index === selectedIndex && selectedIndex !== quiz.correctAnswer) btn.classList.add('wrong');
+    });
+
+    const isCorrect = selectedIndex === quiz.correctAnswer;
+    setTimeout(() => {
+      showFeedback(
+        isCorrect ? '✓ 回答正确！' : '✗ 回答错误，正确答案是：' + quiz.options[quiz.correctAnswer],
+        isCorrect
+      );
+    }, 200);
+  }
+
+  function loadRoot(index) {
+    if (index < 0 || index >= WordRoots.length) return;
+    const root = WordRoots[index];
+    currentIndex = index;
+
+    const nameEl = document.getElementById('rootName');
+    const meaningEl = document.getElementById('rootMeaning');
+    const originEl = document.getElementById('rootOrigin');
+    const descEl = document.getElementById('rootDescription');
+
+    if (nameEl) nameEl.textContent = root.root;
+    if (meaningEl) meaningEl.textContent = root.meaning;
+    if (originEl) originEl.textContent = root.origin;
+    if (descEl) descEl.textContent = root.description;
+
+    renderExamples(root.examples);
+    renderQuiz(root.quiz);
+    updateUI();
+    StorageManager.updateProgress(index);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateUI() {
+    const counter = document.getElementById('cardCounter');
+    const progressBar = document.getElementById('progressBar');
+    const masteredCount = document.getElementById('masteredCount');
+    const masterBtn = document.getElementById('masterBtn');
+
+    if (counter) counter.textContent = (currentIndex + 1) + ' / ' + WordRoots.length;
+    if (progressBar) progressBar.style.width = ((currentIndex + 1) / WordRoots.length * 100) + '%';
+
+    const progress = StorageManager.getProgress();
+    if (masteredCount) masteredCount.textContent = progress.masteredRoots.length;
+
+    const isMastered = StorageManager.isMastered(WordRoots[currentIndex].id);
+    if (masterBtn) {
+      masterBtn.textContent = isMastered ? '✓ 已掌握' : '标记已掌握';
+      masterBtn.style.background = isMastered ? 'var(--color-success)' : '';
+      masterBtn.style.color = isMastered ? '#fff' : '';
+    }
+  }
+
+  function nextRoot() {
+    if (currentIndex < WordRoots.length - 1) loadRoot(currentIndex + 1);
+    else showFeedback('🎉 已完成所有知识点！', true);
+  }
+
+  function prevRoot() {
+    if (currentIndex > 0) loadRoot(currentIndex - 1);
+  }
+
+  function toggleMastered() {
+    const root = WordRoots[currentIndex];
+    const isMastered = StorageManager.isMastered(root.id);
+    if (isMastered) {
+      StorageManager.unmarkRootAsMastered(root.id);
+      showFeedback('已取消掌握标记', false);
+    } else {
+      StorageManager.markRootAsMastered(root.id);
+      showFeedback('✓ 已标记为掌握！', true);
+    }
+    updateUI();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') prevRoot();
+    else if (e.key === 'ArrowRight') nextRoot();
+    else if (e.key === 'm' || e.key === 'M') toggleMastered();
+  });
+
+  // Init
+  try {
+    const progress = StorageManager.getProgress();
+    loadRoot(progress.currentRootIndex || 0);
+  } catch(e) {
+    loadRoot(0);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识点索引 - UE C++ 开发工坊</title>
+  <meta name="description" content="浏览和搜索所有UE C++核心知识点">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/minimal.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-container">
+    <a href="index.html" class="nav-brand">⚡ UE C++ 工坊</a>
+    <div class="nav-links">
+      <a href="learn.html" class="nav-link">学习</a>
+      <a href="flashcard.html" class="nav-link">闪卡</a>
+      <a href="roots.html" class="nav-link active">索引</a>
+      <a href="progress.html" class="nav-link">进度</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="container-wide" style="padding-top: var(--space-3xl); padding-bottom: var(--space-4xl);">
+    <div class="page-header">
+      <h1 class="page-title">知识点索引</h1>
+      <p class="page-subtitle">共 <strong id="totalCount">25</strong> 个知识点，已掌握 <strong id="masteredCount">0</strong> 个</p>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-bar" style="margin-top: var(--space-xl);">
+      <input
+        type="text"
+        class="search-input"
+        id="searchInput"
+        placeholder="搜索知识点名称或含义..."
+        oninput="handleSearch()"
+      >
+      <select class="filter-select" id="filterSelect" onchange="handleFilter()">
+        <option value="all">全部分类</option>
+        <option value="反射宏系统">反射宏系统</option>
+        <option value="核心基类">核心基类</option>
+        <option value="组件系统">组件系统</option>
+        <option value="类型系统">类型系统</option>
+        <option value="智能指针系统">智能指针系统</option>
+        <option value="字符串系统">字符串系统</option>
+        <option value="容器系统">容器系统</option>
+        <option value="事件系统">事件系统</option>
+        <option value="游戏框架">游戏框架</option>
+        <option value="数学库">数学库</option>
+        <option value="物理系统">物理系统</option>
+        <option value="UI系统(UMG)">UI系统(UMG)</option>
+        <option value="世界上下文">世界上下文</option>
+        <option value="网络系统">网络系统</option>
+        <option value="GAS技能系统">GAS技能系统</option>
+        <option value="数据管理">数据管理</option>
+        <option value="调试工具">调试工具</option>
+        <option value="输入系统">输入系统</option>
+        <option value="性能优化">性能优化</option>
+        <option value="内存管理">内存管理</option>
+      </select>
+    </div>
+
+    <!-- Grid -->
+    <div class="roots-grid" id="rootsGrid"></div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-state-icon">🔍</div>
+      <div class="empty-state-title">没有找到匹配的知识点</div>
+      <p>尝试其他关键词或清除筛选条件</p>
+    </div>
+  </div>
+</main>
+
+<script src="js/wordData.js"></script>
+<script src="js/siteConfig.js"></script>
+<script src="js/storage.js"></script>
+<script>
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  function viewDetail(id) {
+    // Find index and go to learn page
+    const index = WordRoots.findIndex(r => r.id === id);
+    if (index >= 0) {
+      StorageManager.updateProgress(index);
+      window.location.href = 'learn.html';
+    }
+  }
+
+  function createRootCard(root, isMastered) {
+    const card = document.createElement('div');
+    card.className = 'root-card' + (isMastered ? ' mastered' : '');
+    card.onclick = () => viewDetail(root.id);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'root-name';
+    nameDiv.textContent = root.root;
+
+    const meaningDiv = document.createElement('div');
+    meaningDiv.className = 'root-meaning';
+    meaningDiv.textContent = root.meaning;
+
+    const originDiv = document.createElement('div');
+    originDiv.className = 'root-origin';
+    originDiv.textContent = root.origin;
+
+    card.appendChild(nameDiv);
+    card.appendChild(meaningDiv);
+    card.appendChild(originDiv);
+
+    if (isMastered) {
+      const badge = document.createElement('span');
+      badge.className = 'mastered-badge';
+      badge.textContent = '✓ 已掌握';
+      card.appendChild(badge);
+    }
+
+    return card;
+  }
+
+  function renderRoots(roots) {
+    const container = document.getElementById('rootsGrid');
+    const emptyState = document.getElementById('emptyState');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    if (roots.length === 0) {
+      if (emptyState) emptyState.style.display = 'block';
+      return;
+    }
+    if (emptyState) emptyState.style.display = 'none';
+
+    const progress = StorageManager.getProgress();
+    const masteredSet = new Set(progress.masteredRoots);
+
+    roots.forEach(root => {
+      const card = createRootCard(root, masteredSet.has(root.id));
+      container.appendChild(card);
+    });
+  }
+
+  function getFilteredRoots() {
+    let roots = WordRoots;
+    if (currentFilter !== 'all') {
+      roots = roots.filter(r => r.origin === currentFilter);
+    }
+    if (currentSearch.trim()) {
+      const q = currentSearch.toLowerCase();
+      roots = roots.filter(r =>
+        r.root.toLowerCase().includes(q) ||
+        r.meaning.toLowerCase().includes(q) ||
+        r.origin.toLowerCase().includes(q)
+      );
+    }
+    return roots;
+  }
+
+  function handleSearch() {
+    const input = document.getElementById('searchInput');
+    currentSearch = input ? input.value : '';
+    renderRoots(getFilteredRoots());
+  }
+
+  function handleFilter() {
+    const select = document.getElementById('filterSelect');
+    currentFilter = select ? select.value : 'all';
+    renderRoots(getFilteredRoots());
+  }
+
+  function updateStats() {
+    try {
+      const progress = StorageManager.getProgress();
+      const masteredEl = document.getElementById('masteredCount');
+      if (masteredEl) masteredEl.textContent = progress.masteredRoots.length;
+    } catch(e) {
+      console.warn('Failed to load stats', e);
+    }
+  }
+
+  // Init
+  updateStats();
+  renderRoots(WordRoots);
+</script>
+</body>
+</html>
