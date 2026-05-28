@@ -1,0 +1,356 @@
+{
+  "nodes": [
+    {
+      "id": "center0000000001",
+      "type": "text",
+      "x": -250,
+      "y": -120,
+      "width": 500,
+      "height": 240,
+      "color": "5",
+      "text": "# 🤖 AI Skills\n## 从Prompt到数字员工的技术革命\n\n**本质**：结构化提示工程 + 工具调用 + 工作流编排的标准化封装\n\n> 让AI像人类一样掌握可复用的专业技能"
+    },
+    {
+      "id": "group_past000001",
+      "type": "group",
+      "x": -1600,
+      "y": -700,
+      "width": 1100,
+      "height": 1200,
+      "label": "📜 前世：技术萌芽与奠基",
+      "color": "3"
+    },
+    {
+      "id": "past_title000001",
+      "type": "text",
+      "x": -1580,
+      "y": -660,
+      "width": 500,
+      "height": 80,
+      "color": "3",
+      "text": "## 一、早期探索（2022-2024）\n提示词工程的困境"
+    },
+    {
+      "id": "past_pain000001",
+      "type": "text",
+      "x": -1580,
+      "y": -560,
+      "width": 460,
+      "height": 160,
+      "text": "### 😣 核心痛点\n- 执行复杂任务需反复输入冗长提示词\n- 缺乏业务知识沉淀\n- 无法跨对话复用\n- 缺乏标准化，难以团队协作"
+    },
+    {
+      "id": "past_2022000001",
+      "type": "text",
+      "x": -1580,
+      "y": -380,
+      "width": 220,
+      "height": 100,
+      "color": "3",
+      "text": "### 2022年\n出现**提示词模板库**\n将常用指令固化"
+    },
+    {
+      "id": "past_2023000001",
+      "type": "text",
+      "x": -1340,
+      "y": -380,
+      "width": 220,
+      "height": 100,
+      "color": "3",
+      "text": "### 2023年\n**工具调用**兴起\nFunction Calling\n模型可调用外部API"
+    },
+    {
+      "id": "past_2024000001",
+      "type": "text",
+      "x": -1580,
+      "y": -260,
+      "width": 460,
+      "height": 100,
+      "color": "3",
+      "text": "### 2024年\n**工作流引擎**出现（如LangChain）\n支持多步骤任务编排"
+    },
+    {
+      "id": "past_2025000001",
+      "type": "text",
+      "x": -1580,
+      "y": -140,
+      "width": 460,
+      "height": 160,
+      "text": "## 二、直接前身（2025上半年）\nAgent能力模块化尝试\n\n- OpenAI Plugin\n- Google Function\n\n⚠️ **问题**：各平台标准不一，无法跨系统共享，开发门槛高"
+    },
+    {
+      "id": "past_limit000001",
+      "type": "text",
+      "x": -1100,
+      "y": -660,
+      "width": 560,
+      "height": 1140,
+      "color": "#f5f0e8",
+      "text": "## 📊 技术演进时间线\n\n```\n2022 ──── 提示词模板库\n          ↓\n2023 ──── Function Calling\n          ↓\n2024 ──── LangChain工作流\n          ↓\n2025上半年 ── Agent模块化尝试\n          ↓\n2025.10.16 ── Claude Skills诞生 🎉\n          ↓\n2025.12.18 ── 开放标准发布\n          ↓\n2026.01初 ── Claude 3.5性能飞跃\n          ↓\n2026.01中 ── 大众生产力工具\n          ↓\n2026.02 ── 微软/GitHub全面支持\n          ↓\n2026至今 ── 全民爆火 🔥\n```\n\n### 关键转变\n- 从**临时性**到**持久化**\n- 从**平台专属**到**开放标准**\n- 从**技术工具**到**大众产品**\n- 从**定制开发**到**技能组合**"
+    },
+    {
+      "id": "group_birth00001",
+      "type": "group",
+      "x": -1600,
+      "y": 600,
+      "width": 1100,
+      "height": 620,
+      "label": "🎂 诞生：Anthropic的开创性突破",
+      "color": "4"
+    },
+    {
+      "id": "birth_date00001",
+      "type": "text",
+      "x": -1580,
+      "y": 640,
+      "width": 500,
+      "height": 120,
+      "color": "4",
+      "text": "## 🚀 2025年10月16日\nAnthropic 正式推出 **Agent Skills** 系统\n\n**核心定义**：将"过程性知识"封装为独立、可复用、可组合的模块"
+    },
+    {
+      "id": "birth_struct0001",
+      "type": "text",
+      "x": -1580,
+      "y": 780,
+      "width": 460,
+      "height": 200,
+      "text": "### 📁 标准化文件结构\n\n```\nSkill/\n├── SKILL.md      # 技能说明文档\n│   ├── 触发条件\n│   ├── 执行步骤\n│   └── 输出格式\n├── prompts/      # 提示词模板\n├── tools/        # 工具脚本\n└── resources/    # 参考文档\n```"
+    },
+    {
+      "id": "birth_open00001",
+      "type": "text",
+      "x": -1100,
+      "y": 640,
+      "width": 560,
+      "height": 200,
+      "color": "4",
+      "text": "## 🌐 2025年12月18日\n发布**开放标准**，推出 agentskills.io 社区平台\n\n### 影响\n- 打破平台壁垒\n- 开发者可共享技能包\n- 非技术用户也能通过自然语言创建Skills"
+    },
+    {
+      "id": "birth_innov0001",
+      "type": "text",
+      "x": -1100,
+      "y": 860,
+      "width": 560,
+      "height": 340,
+      "text": "### 💡 关键创新\n\n**首次提出标准化Skills文件结构**\n\n| 组件 | 作用 |\n|------|------|\n| SKILL.md | 技能说明与触发条件 |\n| prompts/ | 提示词模板目录 |\n| tools/ | 工具脚本与调用规范 |\n| resources/ | 参考文档与资源包 |\n\n> 这是AI能力封装从"临时方案"到"工业标准"的历史性跨越"
+    },
+    {
+      "id": "group_now000001",
+      "type": "group",
+      "x": 400,
+      "y": -700,
+      "width": 1200,
+      "height": 1300,
+      "label": "🔥 今生：从技术圈到全民爆火（2026）",
+      "color": "1"
+    },
+    {
+      "id": "now_events00001",
+      "type": "text",
+      "x": 420,
+      "y": -660,
+      "width": 740,
+      "height": 260,
+      "color": "1",
+      "text": "## 📅 三大爆发节点\n\n| 时间 | 事件 | 影响 |\n|------|------|------|\n| 2026年1月初 | Claude 3.5大幅提升Skills执行效率 | 性能飞跃，体验显著提升 |\n| 2026年1月中 | 非编程用户涌入，用于旅行规划、论文润色 | 从技术工具→大众生产力工具 |\n| 2026年2月 | 微软Azure、GitHub Copilot全面支持 | 成为AI Agent开发行业标准 |"
+    },
+    {
+      "id": "now_feat1_00001",
+      "type": "text",
+      "x": 420,
+      "y": -380,
+      "width": 340,
+      "height": 180,
+      "color": "2",
+      "text": "### 🔧 模块化封装\n把复杂任务拆解为标准化技能单元，像搭积木一样组合使用\n\n**例**："论文润色Skill"包含学术规范、用词标准、句式优化等完整流程"
+    },
+    {
+      "id": "now_feat2_00001",
+      "type": "text",
+      "x": 780,
+      "y": -380,
+      "width": 340,
+      "height": 180,
+      "color": "2",
+      "text": "### 🔄 自动触发机制\n模型能根据用户需求自动识别并加载对应Skills，无需手动调用\n\n**例**：用户上传PDF时，自动触发"PDF解析Skill""
+    },
+    {
+      "id": "now_feat3_00001",
+      "type": "text",
+      "x": 420,
+      "y": -180,
+      "width": 340,
+      "height": 180,
+      "color": "2",
+      "text": "### 🔁 跨场景复用\n一次创建，可在不同对话、不同任务中反复使用\n\n团队可共享Skills，沉淀组织知识资产"
+    },
+    {
+      "id": "now_feat4_00001",
+      "type": "text",
+      "x": 780,
+      "y": -180,
+      "width": 340,
+      "height": 180,
+      "color": "2",
+      "text": "### 🧩 低代码/无代码开发\n无需专业编程能力，通过自然语言编辑SKILL.md即可创建技能包\n\n普通人也能成为"AI技能开发者""
+    },
+    {
+      "id": "now_scene00001",
+      "type": "text",
+      "x": 420,
+      "y": 20,
+      "width": 1140,
+      "height": 280,
+      "text": "## 🌍 主流应用场景\n\n| 场景类型 | 典型应用 | 价值体现 |\n|----------|----------|----------|\n| 🧑 个人生产力 | 旅行规划、论文润色、时间管理 | 解放重复劳动，提升效率 |\n| ✍️ 内容创作 | 选题审核、文案生成、SEO优化 | 标准化创作流程，保证质量 |\n| 🏢 企业办公 | 客户服务、数据分析、项目管理 | 知识沉淀，团队协作更高效 |\n| 🔬 专业领域 | 医疗诊断辅助、法律文书审查、代码审计 | 专业知识标准化，降低人为失误 |"
+    },
+    {
+      "id": "group_future0001",
+      "type": "group",
+      "x": 400,
+      "y": 700,
+      "width": 1200,
+      "height": 520,
+      "label": "🔮 未来：AI能力分发的主流范式",
+      "color": "6"
+    },
+    {
+      "id": "future_tech00001",
+      "type": "text",
+      "x": 420,
+      "y": 740,
+      "width": 560,
+      "height": 260,
+      "color": "6",
+      "text": "## 🛠️ 技术演进方向\n\n### A2A通信协议\n技能包之间可相互通信，实现更复杂的任务协作\n\n### MCP工具协议标准化\n统一工具调用规范，扩大技能生态边界\n\n### 智能治理\nSkills将具备权限管理、版本控制、审计追踪等企业级能力"
+    },
+    {
+      "id": "future_biz00001",
+      "type": "text",
+      "x": 1000,
+      "y": 740,
+      "width": 560,
+      "height": 260,
+      "text": "## 💼 产业影响\n\n| 领域 | 变化 |\n|------|------|\n| AI应用开发 | 从"定制开发"→"技能组合"，开发周期缩短90% |\n| 数字劳动力市场 | 出现Skills交易平台，专业技能可像软件一样买卖 |\n| 人才需求 | 催生**"技能工程师"**新职业，专注创建和优化AI Skills |"
+    },
+    {
+      "id": "group_essence001",
+      "type": "group",
+      "x": -250,
+      "y": 200,
+      "width": 500,
+      "height": 380,
+      "label": "💎 本质与价值",
+      "color": "5"
+    },
+    {
+      "id": "essence_text0001",
+      "type": "text",
+      "x": -230,
+      "y": 240,
+      "width": 460,
+      "height": 320,
+      "color": "5",
+      "text": "## AI能力的"操作系统化"\n\n| 升级维度 | 之前 | 之后 |\n|----------|------|------|\n| 能力形态 | 会思考 | **会干活** |\n| 使用方式 | 一次性工具 | **持久能力** |\n| 开发模式 | 定制开发 | **技能组合** |\n| 知识沉淀 | 对话即失 | **可复用资产** |\n\n> 每个个人和组织都将拥有自己的Skills库，让AI真正成为个性化的数字助手和业务伙伴"
+    },
+    {
+      "id": "edge_center_past",
+      "type": "text",
+      "x": -1000,
+      "y": -1000,
+      "width": 0,
+      "height": 0,
+      "text": ""
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge00000000001",
+      "fromNode": "center0000000001",
+      "fromSide": "left",
+      "toNode": "group_past000001",
+      "toSide": "right",
+      "label": "前世",
+      "color": "3"
+    },
+    {
+      "id": "edge00000000002",
+      "fromNode": "center0000000001",
+      "fromSide": "right",
+      "toNode": "group_now000001",
+      "toSide": "left",
+      "label": "今生",
+      "color": "1"
+    },
+    {
+      "id": "edge00000000003",
+      "fromNode": "center0000000001",
+      "fromSide": "bottom",
+      "toNode": "group_essence001",
+      "toSide": "top",
+      "label": "本质",
+      "color": "5"
+    },
+    {
+      "id": "edge00000000004",
+      "fromNode": "group_past000001",
+      "fromSide": "bottom",
+      "toNode": "group_birth00001",
+      "toSide": "top",
+      "label": "演进",
+      "color": "4"
+    },
+    {
+      "id": "edge00000000005",
+      "fromNode": "group_birth00001",
+      "fromSide": "right",
+      "toNode": "center0000000001",
+      "toSide": "left",
+      "label": "诞生",
+      "color": "4"
+    },
+    {
+      "id": "edge00000000006",
+      "fromNode": "group_now000001",
+      "fromSide": "bottom",
+      "toNode": "group_future0001",
+      "toSide": "top",
+      "label": "未来",
+      "color": "6"
+    },
+    {
+      "id": "edge00000000007",
+      "fromNode": "past_2022000001",
+      "fromSide": "right",
+      "toNode": "past_2023000001",
+      "toSide": "left",
+      "color": "3"
+    },
+    {
+      "id": "edge00000000008",
+      "fromNode": "now_feat1_00001",
+      "fromSide": "right",
+      "toNode": "now_feat2_00001",
+      "toSide": "left",
+      "color": "2"
+    },
+    {
+      "id": "edge00000000009",
+      "fromNode": "now_feat3_00001",
+      "fromSide": "right",
+      "toNode": "now_feat4_00001",
+      "toSide": "left",
+      "color": "2"
+    },
+    {
+      "id": "edge00000000010",
+      "fromNode": "future_tech00001",
+      "fromSide": "right",
+      "toNode": "future_biz00001",
+      "toSide": "left",
+      "label": "推动",
+      "color": "6"
+    }
+  ]
+}
