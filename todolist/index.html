@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks — Stay focused</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect width="20" height="20" rx="6" fill="#5e6ad2"/>
+                        <path d="M5 10L8.5 13.5L15 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="logo-text">Tasks</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <button class="nav-item active" data-filter="all">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <rect x="1" y="1" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.7"/>
+                            <rect x="8" y="1" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.7"/>
+                            <rect x="1" y="8" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.7"/>
+                            <rect x="8" y="8" width="5" height="5" rx="1.5" fill="currentColor" opacity="0.7"/>
+                        </svg>
+                        <span>All Tasks</span>
+                        <span class="nav-count" id="allCount">0</span>
+                    </button>
+                    <button class="nav-item" data-filter="pending">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5" opacity="0.7"/>
+                            <circle cx="7" cy="7" r="2" fill="currentColor" opacity="0.5"/>
+                        </svg>
+                        <span>In Progress</span>
+                        <span class="nav-count" id="pendingCount">0</span>
+                    </button>
+                    <button class="nav-item" data-filter="completed">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="7" r="5.5" stroke="#10b981" stroke-width="1.5"/>
+                            <path d="M4.5 7L6.5 9L9.5 5" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Completed</span>
+                        <span class="nav-count" id="completedCount">0</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="progress-section">
+                    <div class="progress-label">
+                        <span>Progress</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 class="page-title" id="pageTitle">All Tasks</h1>
+                    <span class="task-count-badge" id="taskCountBadge">0 tasks</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-ghost" id="clearCompletedBtn" title="Clear completed">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M2 4h10M5 4V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5V4M6 7v3M8 7v3M3 4l.5 7.5a.5.5 0 00.5.5h6a.5.5 0 00.5-.5L11 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Clear done
+                    </button>
+                </div>
+            </header>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="input-icon">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M7 4.5V7M7 9.5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="taskInput" 
+                        placeholder="Add a new task..."
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                    <div class="input-hint">
+                        <kbd>↵</kbd> to add
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task List -->
+            <div class="task-list-container">
+                <ul class="task-list" id="taskList">
+                    <!-- Tasks rendered here -->
+                </ul>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <rect x="8" y="8" width="24" height="24" rx="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+                            <path d="M15 20h10M20 15v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <p class="empty-title">No tasks yet</p>
+                    <p class="empty-desc">Add your first task above to get started</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
