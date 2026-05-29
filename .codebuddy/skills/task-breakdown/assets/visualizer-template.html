@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{TASK_TITLE}} · 任务地图</title>
+<style>
+  :root {
+    --accent: {{ACCENT_COLOR}};
+    --accent-soft: color-mix(in srgb, var(--accent) 35%, transparent);
+    --bg-0: #0a0e1a;
+    --bg-1: #111827;
+    --bg-2: #1f2937;
+    --fg-0: #e5e7eb;
+    --fg-1: #9ca3af;
+    --fg-2: #6b7280;
+    --ok: #34d399;
+    --warn: #fbbf24;
+    --line: rgba(255, 255, 255, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(ellipse at top, var(--bg-1) 0%, var(--bg-0) 60%);
+    color: var(--fg-0);
+    user-select: none;
+  }
+
+  /* ===== 背景星空 ===== */
+  #stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ===== 顶部 HUD ===== */
+  .hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    background: linear-gradient(180deg, rgba(10,14,26,0.85) 0%, transparent 100%);
+    backdrop-filter: blur(8px);
+  }
+  .hud-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .hud-title .meta { color: var(--fg-2); font-weight: 400; margin-left: 12px; font-size: 13px; }
+  .hud-actions { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--line);
+    color: var(--fg-0);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.12); border-color: var(--accent-soft); }
+
+  /* ===== 进度条 ===== */
+  .progress-bar {
+    position: fixed;
+    top: 64px; left: 24px; right: 24px;
+    height: 4px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 999px;
+    overflow: hidden;
+    z-index: 9;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 50%, white));
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px var(--accent-soft);
+  }
+
+  /* ===== 视图容器 ===== */
+  .view {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .view.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .view.fade-out { transform: scale(0.96); }
+  .view.fade-in  { transform: scale(1); }
+
+  /* ===== 全局地图 ===== */
+  #global-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .node-circle {
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.2s;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .node-circle:hover { filter: brightness(1.4) drop-shadow(0 0 12px var(--accent)); transform: scale(1.08); }
+  .node-label {
+    pointer-events: none;
+    fill: var(--fg-0);
+    font-size: 13px;
+    text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .node-sub {
+    pointer-events: none;
+    fill: var(--fg-2);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+  .root-node { animation: rootPulse 2.4s ease-in-out infinite; }
+  @keyframes rootPulse {
+    0%, 100% { filter: drop-shadow(0 0 8px var(--accent)); }
+    50%      { filter: drop-shadow(0 0 22px var(--accent)); }
+  }
+  .edge-line {
+    stroke: var(--line);
+    stroke-width: 1.2;
+    fill: none;
+    stroke-dasharray: 4 6;
+    animation: dashFlow 18s linear infinite;
+  }
+  @keyframes dashFlow {
+    to { stroke-dashoffset: -200; }
+  }
+
+  /* ===== 聚焦视图 ===== */
+  .focus-wrap {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    padding: 110px 32px 60px;
+  }
+  .focus-header {
+    max-width: 760px;
+    margin: 0 auto 28px;
+  }
+  .focus-back {
+    background: none;
+    border: none;
+    color: var(--fg-1);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 8px 0;
+    margin-bottom: 12px;
+  }
+  .focus-back:hover { color: var(--accent); }
+  .focus-title {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .focus-sub { color: var(--fg-1); font-size: 14px; }
+
+  .card-list {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px 18px 64px;
+    transition: all 0.25s;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: var(--accent-soft);
+    transform: translateX(4px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+  .card.done {
+    opacity: 0.55;
+  }
+  .card.done .card-text {
+    text-decoration: line-through;
+    color: var(--fg-2);
+  }
+  .card-checkbox {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--fg-2);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .card-checkbox:hover { border-color: var(--accent); }
+  .card.done .card-checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .card-checkbox svg {
+    width: 16px;
+    height: 16px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card.done .card-checkbox svg { opacity: 1; }
+  .card-id {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: 0.5px;
+  }
+  .card-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--fg-0);
+  }
+  .card-min {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    color: var(--fg-2);
+    background: rgba(255,255,255,0.04);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+  }
+
+  /* ===== 粒子效果层 ===== */
+  #fx-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    pointer-events: none;
+  }
+
+  /* ===== 全部完成横幅 ===== */
+  .victory {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, white));
+    color: #0a0e1a;
+    padding: 24px 48px;
+    border-radius: 16px;
+    font-size: 28px;
+    font-weight: 800;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .victory.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* 滚动条 */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="hud">
+  <div class="hud-title">
+    <span id="hud-task-title">{{TASK_TITLE}}</span>
+    <span class="meta" id="hud-meta"></span>
+  </div>
+  <div class="hud-actions">
+    <button class="btn" id="btn-sound" title="切换音效">🔊</button>
+    <button class="btn" id="btn-reset" title="重置勾选状态">↺ 重置</button>
+  </div>
+</div>
+
+<div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+
+<!-- 视图 A：全局地图 -->
+<div class="view active fade-in" id="view-global">
+  <svg id="global-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<!-- 视图 B：分支聚焦 -->
+<div class="view" id="view-focus">
+  <div class="focus-wrap">
+    <div class="focus-header">
+      <button class="focus-back" id="btn-back">← 返回全局地图</button>
+      <div class="focus-title" id="focus-title"></div>
+      <div class="focus-sub" id="focus-sub"></div>
+    </div>
+    <div class="card-list" id="card-list"></div>
+  </div>
+</div>
+
+<canvas id="fx-canvas"></canvas>
+
+<div class="victory" id="victory">🎉 全部完成！</div>
+
+<!-- 任务数据由生成器注入 -->
+<script id="task-data" type="application/json">
+{{TASK_JSON}}
+</script>
+
+<script>
+(() => {
+  // ============ 数据 ============
+  const data = JSON.parse(document.getElementById('task-data').textContent);
+  const STORAGE_KEY = 'task-breakdown::' + (data.title || 'untitled');
+
+  // 收集所有叶子节点
+  const allLeaves = [];
+  function collectLeaves(items, parentPhaseId) {
+    items.forEach(it => {
+      if (it.isLeaf) {
+        allLeaves.push({ ...it, phaseId: parentPhaseId });
+      } else if (it.children) {
+        collectLeaves(it.children, parentPhaseId);
+      }
+    });
+  }
+  data.phases.forEach(p => collectLeaves(p.items, p.id));
+
+  // ============ 持久化状态 ============
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { state = {}; }
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  // ============ 音效（Web Audio） ============
+  let audioCtx = null;
+  let soundOn = true;
+  function ensureAudio() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e) { soundOn = false; }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function tone({ freq = 600, type = 'sine', dur = 0.1, vol = 0.15, slideTo = null, delay = 0 }) {
+    if (!soundOn) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    if (slideTo !== null) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(vol, t0 + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }
+  function noiseBurst({ dur = 0.18, vol = 0.08 }) {
+    if (!soundOn) return;
+    ensureAudio();
+    if (!audioCtx) return;
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / ch.length);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 800;
+    const gain = audioCtx.createGain();
+    gain.gain.value = vol;
+    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    src.start();
+  }
+  const SFX = {
+    hover:   () => tone({ freq: 800, type: 'sine', dur: 0.05, vol: 0.06 }),
+    enter:   () => tone({ freq: 600, type: 'triangle', dur: 0.15, vol: 0.12, slideTo: 1200 }),
+    back:    () => noiseBurst({ dur: 0.2, vol: 0.06 }),
+    check:   () => {
+      tone({ freq: 523.25, type: 'sine', dur: 0.08, vol: 0.12 });
+      tone({ freq: 659.25, type: 'sine', dur: 0.08, vol: 0.12, delay: 0.08 });
+      tone({ freq: 783.99, type: 'sine', dur: 0.12, vol: 0.14, delay: 0.16 });
+    },
+    uncheck: () => tone({ freq: 400, type: 'sine', dur: 0.1, vol: 0.1, slideTo: 200 }),
+    victory: () => {
+      const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+      notes.forEach((f, i) => tone({ freq: f, type: 'triangle', dur: 0.18, vol: 0.16, delay: i * 0.1 }));
+    },
+  };
+
+  // ============ 背景星空 ============
+  const starsCanvas = document.getElementById('stars');
+  const starsCtx = starsCanvas.getContext('2d');
+  let stars = [];
+  function resizeStars() {
+    starsCanvas.width = window.innerWidth;
+    starsCanvas.height = window.innerHeight;
+    stars = Array.from({ length: 90 }, () => ({
+      x: Math.random() * starsCanvas.width,
+      y: Math.random() * starsCanvas.height,
+      r: Math.random() * 1.4 + 0.3,
+      vx: (Math.random() - 0.5) * 0.08,
+      vy: (Math.random() - 0.5) * 0.08,
+      a: Math.random() * 0.6 + 0.2,
+    }));
+  }
+  function drawStars() {
+    starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
+    stars.forEach(s => {
+      s.x += s.vx; s.y += s.vy;
+      if (s.x < 0) s.x = starsCanvas.width;  if (s.x > starsCanvas.width) s.x = 0;
+      if (s.y < 0) s.y = starsCanvas.height; if (s.y > starsCanvas.height) s.y = 0;
+      starsCtx.beginPath();
+      starsCtx.fillStyle = `rgba(200, 220, 255, ${s.a})`;
+      starsCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      starsCtx.fill();
+    });
+    requestAnimationFrame(drawStars);
+  }
+  resizeStars();
+  drawStars();
+  window.addEventListener('resize', resizeStars);
+
+  // ============ 粒子特效 ============
+  const fxCanvas = document.getElementById('fx-canvas');
+  const fxCtx = fxCanvas.getContext('2d');
+  let particles = [];
+  function resizeFx() { fxCanvas.width = window.innerWidth; fxCanvas.height = window.innerHeight; }
+  resizeFx();
+  window.addEventListener('resize', resizeFx);
+
+  function spawnParticles(x, y, count = 24, color = null) {
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#34d399';
+    for (let i = 0; i < count; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 4 + 2;
+      particles.push({
+        x, y,
+        vx: Math.cos(ang) * speed,
+        vy: Math.sin(ang) * speed,
+        life: 1,
+        decay: Math.random() * 0.02 + 0.015,
+        size: Math.random() * 3 + 2,
+        color: color || accent,
+      });
+    }
+  }
+  function spawnFireworks() {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    for (let k = 0; k < 6; k++) {
+      setTimeout(() => {
+        const x = cx + (Math.random() - 0.5) * 400;
+        const y = cy + (Math.random() - 0.5) * 200;
+        spawnParticles(x, y, 50);
+      }, k * 200);
+    }
+  }
+  function tickFx() {
+    fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.08;
+      p.life -= p.decay;
+      fxCtx.globalAlpha = Math.max(p.life, 0);
+      fxCtx.fillStyle = p.color;
+      fxCtx.beginPath();
+      fxCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      fxCtx.fill();
+    });
+    fxCtx.globalAlpha = 1;
+    requestAnimationFrame(tickFx);
+  }
+  tickFx();
+
+  // ============ 全局地图渲染 ============
+  const svg = document.getElementById('global-svg');
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function renderGlobal() {
+    svg.innerHTML = '';
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const cx = W / 2;
+    const cy = H / 2;
+
+    // 中心：根节点
+    const rootR = 56;
+    const rootG = document.createElementNS(SVG_NS, 'g');
+
+    // 阶段节点：第二圈
+    const phases = data.phases;
+    const phaseR = 38;
+    const phaseRadius = Math.min(W, H) * 0.22;
+
+    // 叶子节点：第三圈（围绕各自阶段）
+    const leafR = 14;
+    const leafSpread = Math.min(W, H) * 0.16;
+
+    // 累计完成度
+    const total = allLeaves.length;
+    const done = allLeaves.filter(l => state[l.id]).length;
+
+    // 画根→阶段连线
+    phases.forEach((phase, i) => {
+      const ang = (i / phases.length) * Math.PI * 2 - Math.PI / 2;
+      const px = cx + Math.cos(ang) * phaseRadius;
+      const py = cy + Math.sin(ang) * phaseRadius;
+      const line = document.createElementNS(SVG_NS, 'path');
+      line.setAttribute('class', 'edge-line');
+      line.setAttribute('d', `M${cx},${cy} Q${(cx+px)/2 + (Math.random()-0.5)*20},${(cy+py)/2 + (Math.random()-0.5)*20} ${px},${py}`);
+      svg.appendChild(line);
+      phase._x = px; phase._y = py; phase._ang = ang;
+    });
+
+    // 画阶段→叶子连线 + 叶子
+    phases.forEach((phase, i) => {
+      const leaves = [];
+      function gather(items) {
+        items.forEach(it => {
+          if (it.isLeaf) leaves.push(it);
+          else if (it.children) gather(it.children);
+        });
+      }
+      gather(phase.items);
+
+      const n = leaves.length;
+      leaves.forEach((leaf, j) => {
+        const baseAng = phase._ang;
+        const spreadAng = (Math.PI / 3) * (n > 1 ? (j / (n - 1) - 0.5) : 0);
+        const ang = baseAng + spreadAng;
+        const lx = phase._x + Math.cos(ang) * leafSpread;
+        const ly = phase._y + Math.sin(ang) * leafSpread;
+        leaf._x = lx; leaf._y = ly;
+
+        const line = document.createElementNS(SVG_NS, 'path');
+        line.setAttribute('class', 'edge-line');
+        line.setAttribute('d', `M${phase._x},${phase._y} L${lx},${ly}`);
+        svg.appendChild(line);
+      });
+      phase._leaves = leaves;
+    });
+
+    // 画叶子节点
+    phases.forEach(phase => {
+      phase._leaves.forEach(leaf => {
+        const g = document.createElementNS(SVG_NS, 'g');
+        const c = document.createElementNS(SVG_NS, 'circle');
+        c.setAttribute('class', 'node-circle');
+        c.setAttribute('cx', leaf._x);
+        c.setAttribute('cy', leaf._y);
+        c.setAttribute('r', leafR);
+        c.setAttribute('fill', state[leaf.id] ? 'var(--ok)' : 'rgba(255,255,255,0.08)');
+        c.setAttribute('stroke', state[leaf.id] ? 'var(--ok)' : 'var(--accent-soft)');
+        c.setAttribute('stroke-width', '1.5');
+        c.addEventListener('mouseenter', () => SFX.hover());
+        c.addEventListener('click', () => { SFX.enter(); enterFocus(phase.id); });
+        g.appendChild(c);
+
+        const label = document.createElementNS(SVG_NS, 'text');
+        label.setAttribute('class', 'node-sub');
+        label.setAttribute('x', leaf._x);
+        label.setAttribute('y', leaf._y + leafR + 14);
+        label.textContent = leaf.id;
+        g.appendChild(label);
+
+        svg.appendChild(g);
+      });
+    });
+
+    // 画阶段节点
+    phases.forEach(phase => {
+      const g = document.createElementNS(SVG_NS, 'g');
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('class', 'node-circle');
+      c.setAttribute('cx', phase._x);
+      c.setAttribute('cy', phase._y);
+      c.setAttribute('r', phaseR);
+      c.setAttribute('fill', 'var(--bg-2)');
+      c.setAttribute('stroke', 'var(--accent)');
+      c.setAttribute('stroke-width', '2');
+      c.addEventListener('mouseenter', () => SFX.hover());
+      c.addEventListener('click', () => { SFX.enter(); enterFocus(phase.id); });
+      g.appendChild(c);
+
+      const label = document.createElementNS(SVG_NS, 'text');
+      label.setAttribute('class', 'node-label');
+      label.setAttribute('x', phase._x);
+      label.setAttribute('y', phase._y - 4);
+      label.textContent = phase.id;
+      g.appendChild(label);
+
+      const sub = document.createElementNS(SVG_NS, 'text');
+      sub.setAttribute('class', 'node-sub');
+      sub.setAttribute('x', phase._x);
+      sub.setAttribute('y', phase._y + 12);
+      sub.textContent = (phase.name || '').slice(0, 6);
+      g.appendChild(sub);
+
+      svg.appendChild(g);
+    });
+
+    // 画根节点
+    const rg = document.createElementNS(SVG_NS, 'g');
+    rg.setAttribute('class', 'root-node');
+    const rc = document.createElementNS(SVG_NS, 'circle');
+    rc.setAttribute('class', 'node-circle');
+    rc.setAttribute('cx', cx);
+    rc.setAttribute('cy', cy);
+    rc.setAttribute('r', rootR);
+    rc.setAttribute('fill', 'var(--accent)');
+    rc.setAttribute('opacity', '0.9');
+    rg.appendChild(rc);
+
+    const rl = document.createElementNS(SVG_NS, 'text');
+    rl.setAttribute('class', 'node-label');
+    rl.setAttribute('x', cx);
+    rl.setAttribute('y', cy - 4);
+    rl.style.fontSize = '15px';
+    rl.style.fontWeight = '700';
+    rl.style.fill = '#0a0e1a';
+    rl.textContent = (data.title || '').slice(0, 8);
+    rg.appendChild(rl);
+
+    const rs = document.createElementNS(SVG_NS, 'text');
+    rs.setAttribute('class', 'node-sub');
+    rs.setAttribute('x', cx);
+    rs.setAttribute('y', cy + 14);
+    rs.style.fill = '#0a0e1a';
+    rs.style.fontWeight = '600';
+    rs.textContent = `${done}/${total}`;
+    rg.appendChild(rs);
+
+    svg.appendChild(rg);
+
+    updateProgress();
+  }
+
+  // ============ 聚焦视图 ============
+  function enterFocus(phaseId) {
+    const phase = data.phases.find(p => p.id === phaseId);
+    if (!phase) return;
+    const leaves = [];
+    function gather(items, prefix='') {
+      items.forEach(it => {
+        if (it.isLeaf) leaves.push(it);
+        else if (it.children) gather(it.children);
+      });
+    }
+    gather(phase.items);
+
+    document.getElementById('focus-title').textContent = `${phase.id}. ${phase.name}`;
+    const phaseTotal = leaves.reduce((s,l) => s + (l.min || 0), 0);
+    document.getElementById('focus-sub').textContent =
+      `共 ${leaves.length} 项 · 预计 ~${phaseTotal} 分钟`;
+
+    const list = document.getElementById('card-list');
+    list.innerHTML = '';
+    leaves.forEach(leaf => {
+      const card = document.createElement('div');
+      card.className = 'card' + (state[leaf.id] ? ' done' : '');
+      card.innerHTML = `
+        <div class="card-checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0a0e1a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="card-id">${leaf.id}</div>
+        <div class="card-text">${escapeHtml(leaf.text)}</div>
+        <div class="card-min">⏱️ ~${leaf.min || '?'}min</div>
+      `;
+      card.addEventListener('mouseenter', () => SFX.hover());
+      card.addEventListener('click', (e) => {
+        const wasDone = !!state[leaf.id];
+        state[leaf.id] = !wasDone;
+        saveState();
+        if (!wasDone) {
+          card.classList.add('done');
+          SFX.check();
+          const rect = card.getBoundingClientRect();
+          spawnParticles(rect.left + 32, rect.top + rect.height/2, 28);
+          checkVictory();
+        } else {
+          card.classList.remove('done');
+          SFX.uncheck();
+        }
+        updateProgress();
+      });
+      list.appendChild(card);
+    });
+
+    switchView('focus');
+  }
+
+  function switchView(name) {
+    const g = document.getElementById('view-global');
+    const f = document.getElementById('view-focus');
+    if (name === 'focus') {
+      g.classList.remove('active');
+      f.classList.add('active');
+    } else {
+      f.classList.remove('active');
+      g.classList.add('active');
+      renderGlobal();
+    }
+  }
+
+  // ============ 进度 / 胜利 ============
+  function updateProgress() {
+    const total = allLeaves.length;
+    const done = allLeaves.filter(l => state[l.id]).length;
+    const pct = total ? (done / total * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('hud-meta').textContent =
+      `${done}/${total} · 预计 ${data.totalMin || '?'}min`;
+  }
+  function checkVictory() {
+    const total = allLeaves.length;
+    const done = allLeaves.filter(l => state[l.id]).length;
+    if (total > 0 && done === total) {
+      const v = document.getElementById('victory');
+      v.classList.add('show');
+      SFX.victory();
+      spawnFireworks();
+      setTimeout(() => v.classList.remove('show'), 2800);
+    }
+  }
+
+  // ============ 工具 ============
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // ============ 事件绑定 ============
+  document.getElementById('btn-back').addEventListener('click', () => {
+    SFX.back();
+    switchView('global');
+  });
+  document.getElementById('btn-sound').addEventListener('click', (e) => {
+    soundOn = !soundOn;
+    e.currentTarget.textContent = soundOn ? '🔊' : '🔇';
+    if (soundOn) SFX.hover();
+  });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    if (!confirm('重置所有勾选状态？')) return;
+    state = {};
+    saveState();
+    SFX.back();
+    renderGlobal();
+    updateProgress();
+  });
+  window.addEventListener('resize', () => {
+    if (document.getElementById('view-global').classList.contains('active')) {
+      renderGlobal();
+    }
+  });
+  // 首次交互后激活音频
+  ['click', 'keydown', 'touchstart'].forEach(ev => {
+    document.addEventListener(ev, ensureAudio, { once: true });
+  });
+
+  // ============ 启动 ============
+  renderGlobal();
+  updateProgress();
+  setTimeout(checkVictory, 200);
+})();
+</script>
+</body>
+</html>
